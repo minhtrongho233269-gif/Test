@@ -1,0 +1,12 @@
+import 'dotenv/config';
+import {Pool} from 'pg';
+import {createMailer} from './mail.js';
+import {readFile} from 'node:fs/promises';
+import {createApp} from './app.js';
+if(!process.env.DATABASE_URL || (process.env.JWT_SECRET?.length||0)<32)throw Error('Cần DATABASE_URL và JWT_SECRET tối thiểu 32 ký tự');
+const pool=new Pool({connectionString:process.env.DATABASE_URL,ssl:process.env.DB_SSL==='true'?{rejectUnauthorized:true}:undefined});
+await pool.query(await readFile(new URL('./schema.sql',import.meta.url),'utf8'));
+if(process.env.BOOTSTRAP_ADMIN_EMAIL)await pool.query("UPDATE users SET role='admin' WHERE email=$1 AND verified=true",[process.env.BOOTSTRAP_ADMIN_EMAIL.toLowerCase()]);
+const sendMail=createMailer();
+const server=createApp({pool,sendMail}).listen(process.env.PORT||10000,'0.0.0.0');
+process.on('SIGTERM',()=>server.close(async()=>{await pool.end();process.exit(0);}));

@@ -1,0 +1,13 @@
+**/node_modules/
+**/.env
+**/.env.*
+!**/.env.example
+**/.dart_tool/
+**/build/
+**/local.properties
+**/key.properties
+**/*.jks
+**/.gradle/
+**/coverage/
+**/android/.kotlin/
+*.log
